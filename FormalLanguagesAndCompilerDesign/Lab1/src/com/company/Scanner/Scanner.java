@@ -55,7 +55,6 @@ public class Scanner {
                 .split("\\s+");
 
         for (String symbol: program) {
-            System.out.println(symbol);
             try {
                 internalForm.add(symbol, symbolTable);
             } catch (ProgramException e) {
@@ -79,7 +78,7 @@ public class Scanner {
                 else {
                     int startIndex = index - 20 >= 0 ? index - 20 : 0;
                     int endIndex = index;
-                    throw new ScannerException("Extra closing bracket: " + program.substring(startIndex, endIndex));
+                    throw new ScannerException("Extra closing bracket: " + program.substring(startIndex, endIndex) + "...");
                 }
             }
         }
@@ -88,7 +87,7 @@ public class Scanner {
         for (int index: stack) {
             int startIndex = index;
             int endIndex = (index + 20 < program.length()) ? index + 20 : program.length();
-            error.append("Extra opening bracket: " + program.substring(startIndex, endIndex) + "\n");
+            error.append("Extra opening bracket: " + program.substring(startIndex, endIndex) + "...\n");
         }
 
         if (error.length() > 0) {
