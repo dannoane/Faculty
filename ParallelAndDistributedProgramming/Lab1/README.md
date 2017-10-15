@@ -1,4 +1,4 @@
-#Lab 1 - "Non-cooperative" multithreading
+# Lab 1 - "Non-cooperative" multithreading
 
 ### Goal
 The goal of this lab is to refresh the knowledge regarding threads and mutexes.
