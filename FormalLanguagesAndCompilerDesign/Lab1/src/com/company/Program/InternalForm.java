@@ -22,6 +22,10 @@ public class InternalForm {
     public void add(String symbol, SymbolTable symbolTable) throws ProgramException {
 
         if (!symbols.containsKey(symbol)) {
+            if (symbol.length() > 8) {
+                throw new ProgramException("Identifier length must be at least 8 characters");
+            }
+
             if (symbolTable.contains(symbol)) {
                 internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.get(symbol)));
             }
