@@ -1,21 +1,21 @@
 import { createStore } from 'redux';
 import { throttle } from 'lodash/throttle';
-import { affineChiper } from './../Reducer/AffineChiper';
+import { affineCipher } from './../Reducer/AffineCipher';
 
 const loadState = () => {
 
   return JSON.parse(localStorage.getItem('state')) || undefined;
 };
 
-const saveState = ({chiperKey, plainText, mode}) => {
+const saveState = ({cipherKey, plainText, mode}) => {
 
-  localStorage.setItem('state', JSON.stringify({chiperKey, plainText, mode}));
+  localStorage.setItem('state', JSON.stringify({cipherKey, plainText, mode}));
 }
 
 const Store = () => {
 
   const persistedState = loadState();
-  const store = createStore(affineChiper, persistedState);
+  const store = createStore(affineCipher, persistedState);
 
   store.subscribe(() => {
     saveState(store.getState());

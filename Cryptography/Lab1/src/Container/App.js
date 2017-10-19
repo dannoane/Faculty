@@ -4,7 +4,7 @@ import { AppComponent } from './../Component/AppComponent';
 import { setKey, setPlainText, setTransformedText, setMode, setError } from './../Action';
 
 const mapStateToProps = (state) => ({
-  chiperKey: state.chiperKey,
+  cipherKey: state.cipherKey,
   plainText: state.plainText,
   transformedText: state.transformedText,
   mode: state.mode,

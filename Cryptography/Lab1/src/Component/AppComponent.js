@@ -4,7 +4,7 @@ import Encrypt from './../Lib/Encrypt';
 import Decrypt from './../Lib/Decrypt';
 
 const AppComponent = ({
-  chiperKey,
+  cipherKey,
   plainText,
   transformedText,
   mode,
@@ -16,9 +16,9 @@ const AppComponent = ({
   onError
 }) => {
 
-  const _getKey = (chiperKey) => {
+  const _getKey = (cipherKey) => {
 
-    return chiperKey
+    return cipherKey
       .replace(/(?!,)\D+/, '')
       .split(',');
   }
@@ -29,11 +29,11 @@ const AppComponent = ({
 
     try {
       if (mode === 'encrypt') {
-        let encrypt = new Encrypt(_getKey(chiperKey), plainText);
+        let encrypt = new Encrypt(_getKey(cipherKey), plainText);
         onTransformedText(encrypt.encrypt());
       }
       else {
-        let decrypt = new Decrypt(_getKey(chiperKey), plainText);
+        let decrypt = new Decrypt(_getKey(cipherKey), plainText);
         onTransformedText(decrypt.decrypt());
       }
     }
@@ -47,7 +47,7 @@ const AppComponent = ({
       <form onSubmit={(e) => { e.preventDefault(); _transform() }}>
         <label>
           Key:
-          <input type="text" value={chiperKey} onChange={(e) => { onKey(e.target.value); }} />
+          <input type="text" value={cipherKey} onChange={(e) => { onKey(e.target.value); }} />
         </label>
         <label>
           Mode:
@@ -71,7 +71,7 @@ const AppComponent = ({
 }
 
 AppComponent.propTypes = {
-  chiperKey: PropTypes.string,
+  cipherKey: PropTypes.string,
   plainText: PropTypes.string,
   transformedText: PropTypes.string,
   mode: PropTypes.string,
