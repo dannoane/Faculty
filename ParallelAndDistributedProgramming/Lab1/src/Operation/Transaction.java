@@ -24,11 +24,14 @@ public class Transaction extends Operation {
 
     private void lockAccounts() {
 
+        // lock in the same order: smaller id first
         if (from.getId() < to.getId()) {
+            System.out.println("Trying to lock accounts " + from.getId() + " " + to.getId());
             from.getLock().lock();
             to.getLock().lock();
         }
         else {
+            System.out.println("Trying to lock accounts " + to.getId() + " " + from.getId());
             to.getLock().lock();
             from.getLock().lock();
         }
@@ -36,6 +39,7 @@ public class Transaction extends Operation {
 
     private void unlockAccounts() {
 
+        System.out.println("Trying to unlock accounts " + from.getId() + " " + to.getId());
         from.getLock().unlock();
         to.getLock().unlock();
     }
@@ -45,6 +49,8 @@ public class Transaction extends Operation {
         from.setBalance(-amount);
         to.setBalance(amount);
         addLogs();
+
+        System.out.println("FROM " + from.getId() + " TO " + to.getId() + " AMOUNT " + amount);
     }
 
     private void addLogs() {

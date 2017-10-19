@@ -15,8 +15,10 @@ public class Check extends Operation {
 
                 account.getLock().lock();
 
+                // get initial balance
                 expectedSum += account.getInitialBalance();
 
+                // compute actual balance based on current balance and the transfer logs
                 actualSum += account.getBalance();
                 actualSum += account
                         .getLogs()
@@ -28,6 +30,7 @@ public class Check extends Operation {
                     System.err.println("Expected balance and actual balance does not match for account: " + account.getId());
                 }
 
+                // check if the logs match
                 account.getLogs()
                         .forEach(log -> {
                             int otherId = log.getFrom() == account.getId() ? log.getTo() : log.getFrom();
@@ -44,7 +47,7 @@ public class Check extends Operation {
                                 boolean exists = otherAccount
                                         .getLogs()
                                         .stream()
-                                        .anyMatch(l -> otherId == (log.getFrom() == account.getId() ? log.getTo() : l.getFrom()));
+                                        .anyMatch(l -> l.equals(log));
 
                                 if (!exists) {
                                     System.err.println("Mirror log not found for account: " + account.getId());
