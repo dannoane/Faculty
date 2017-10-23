@@ -1,3 +1,5 @@
+import Model.Matrix;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -13,49 +15,67 @@ public class Main {
 
         Random random = new Random();
 
-        int n, m, p;
-        n = random.nextInt(3) + 1;
-        m = n;
-        p = random.nextInt(3) + 1;
+        int n = random.nextInt(3) + 1;
+        int m = random.nextInt(3) + 1;
+        int p = random.nextInt(3) + 1;
+        Matrix a = new Matrix(n, m);
+        Matrix b = new Matrix(m, p);
+        Matrix c = new Matrix(n, p);
 
-        int[][] matrixA = new int[n][m];
-        int[][] matrixB = new int[m][p];
-        int[][] matrixC = new int[n][p];
-        int dimC = n * p;
+        randomInit(a);
+        randomInit(b);
 
-        IntStream.range(0, n)
-                .forEach(i -> {
-                    IntStream.range(0, m)
-                            .forEach(j -> matrixA[i][j] = random.nextInt(10));
-                });
+        //ExecutorService executor = Executors.newWorkStealingPool();
+        //List<Runnable> jobs = new ArrayList<>();
+        List<Thread> jobs = new ArrayList<>();
+        int threads = random.nextInt(c.size()) + 1;
 
-        IntStream.range(0, m)
-                .forEach(i -> {
-                    IntStream.range(0, p)
-                            .forEach(j -> matrixB[i][j] = random.nextInt(10));
-                });
+        for (int counter  = 0; counter  < threads; ++counter) {
+            int start = counter * (c.size() / threads);
+            int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
 
-        int nThreads = 3;
-        List<Runnable> threads = new ArrayList<>();
-        for (int i = 0; i < nThreads; ++i) {
-            int start = i * (dimC / nThreads);
-            int stop = (i + 1) * (dimC / nThreads) + (i == nThreads - 1 ? dimC % nThreads : 0);
-            System.out.println("Start: " + start + " Stop: " + stop);
-            threads.add(() -> {
-                for (int c = start; c < stop; ++c) {
-                    int row = c / p;
-                    int col = c % p;
+            jobs.add(new Thread(() -> {
+                for (int index = start; index < end; ++index) {
+                    int row = index / c.getCols();
+                    int col = index % c.getCols();
 
-                    matrixC[row][col] = 0;
-                    for (int x = 0; x < m; ++x) {
-                        matrixC[row][col] += (matrixA[row][x] * matrixB[x][col]);
+                    c.set(row, col, 0);
+                    for (int x = 0; x < a.getCols(); ++x) {
+                        c.set(row, col, c.get(row, col) + (a.get(row, x) * b.get(x, col)));
                     }
                 }
-            });
+            }));
         }
 
-        ExecutorService executor = Executors.newWorkStealingPool();
-        threads.forEach(t -> executor.submit(t));
+        //jobs.forEach(j -> executor.submit(j));
+        jobs.forEach(j -> j.run());
+        jobs.forEach(j -> {
+            try {
+                j.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        //closeExecutor(executor);
+
+        System.out.println(a);
+        System.out.println(b);
+        System.out.println(c);
+    }
+
+    private static void randomInit(Matrix a) {
+
+        Random random = new Random();
+
+        for (int row = 0; row < a.getRows(); ++row) {
+            for (int col = 0; col < a.getCols(); ++col) {
+                a.set(row, col, random.nextInt(5));
+            }
+        }
+    }
+
+    private static void closeExecutor(ExecutorService executor) {
 
         try {
             System.out.println("attempt to shutdown executor");
@@ -72,22 +92,5 @@ public class Main {
             executor.shutdownNow();
             System.out.println("shutdown finished");
         }
-
-        printMatrix(matrixA);
-        printMatrix(matrixB);
-        printMatrix(matrixC);
-    }
-
-    private static void printMatrix(int[][] matrix) {
-
-        for (int i = 0; i < matrix.length; ++i) {
-            for (int j = 0; j < matrix[i].length; ++j) {
-                System.out.print(matrix[i][j] + " ");
-            }
-
-            System.out.println();
-        }
-
-        System.out.println();
     }
 }

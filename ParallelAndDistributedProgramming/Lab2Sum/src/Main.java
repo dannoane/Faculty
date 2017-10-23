@@ -13,8 +13,8 @@ public class Main {
 
         Random random = new Random();
 
-        int rows = random.nextInt(3) + 1;
-        int cols = random.nextInt(3) + 1;
+        int rows = random.nextInt(100) + 1;
+        int cols = random.nextInt(100) + 1;
         Matrix a = new Matrix(rows, cols);
         Matrix b = new Matrix(rows, cols);
         Matrix c = new Matrix(rows, cols);
@@ -22,27 +22,36 @@ public class Main {
         randomInit(a);
         randomInit(b);
 
-        ExecutorService executor = Executors.newWorkStealingPool();
-        List<Runnable> jobs = new ArrayList<>();
+        //ExecutorService executor = Executors.newWorkStealingPool();
+        //List<Runnable> jobs = new ArrayList<>();
+        List<Thread> jobs = new ArrayList<>();
         int threads = random.nextInt(c.size()) + 1;
 
         for (int counter  = 0; counter  < threads; ++counter) {
             int start = counter * (c.size() / threads);
             int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
 
-            jobs.add(() -> {
+            jobs.add(new Thread(() -> {
                 for (int index = start; index < end; ++index) {
                     int row = index / c.getCols();
                     int col = index % c.getCols();
 
                     c.set(row, col, a.get(row, col) + b.get(row, col));
                 }
-            });
+            }));
         }
 
-        jobs.forEach(j -> executor.submit(j));
+        //jobs.forEach(j -> executor.submit(j));
+        jobs.forEach(j -> j.run());
+        jobs.forEach(j -> {
+            try {
+                j.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
 
-        closeExecutor(executor);
+        //closeExecutor(executor);
 
         System.out.println(a);
         System.out.println(b);

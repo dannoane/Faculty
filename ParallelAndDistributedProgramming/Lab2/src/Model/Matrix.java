@@ -1,7 +1,5 @@
 package Model;
 
-import java.util.Arrays;
-
 public class Matrix {
 
     int[][] matrix;
