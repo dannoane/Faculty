@@ -6,7 +6,8 @@ import java.util.TreeMap;
 public class SymbolTable {
 
     private SortedMap<String, Integer> symbolTable;
-    private int code = 0;
+    private int constCode = 0;
+    private int varCode = 10000;
 
 
     public SymbolTable() {
@@ -19,9 +20,17 @@ public class SymbolTable {
         if (symbolTable.containsKey(id))
             throw new ProgramException(id + " is already defined");
 
-        symbolTable.put(id, code);
-
-        return code++;
+        if (id.matches("^([a-zA-Z_$]+[0-9]*)+$")) {
+            symbolTable.put(id, varCode);
+            return varCode++;
+        }
+        else if (id.matches("^[0-9]+(\\.[0-9]+)?")) {
+            symbolTable.put(id, constCode);
+            return constCode++;
+        }
+        else {
+            throw new ProgramException(id + " is an invalid identifier");
+        }
     }
 
     public boolean contains(String id) {
