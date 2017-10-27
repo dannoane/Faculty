@@ -30,7 +30,14 @@ public class InternalForm {
                 internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.get(symbol)));
             }
             else {
-                internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.set(symbol)));
+                boolean constant = false;
+                if (!internalForm.isEmpty()) {
+                    if (internalForm.get(internalForm.size() - 1).getKey() == 26) {
+                        constant = true;
+                    }
+                }
+
+                internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.set(symbol, constant)));
             }
         }
         else {
@@ -65,6 +72,7 @@ public class InternalForm {
         symbols.put("write", 23);
         symbols.put("do", 24);
         symbols.put("ID", 25);
+        symbols.put("newc", 26);
     }
 
     @Override

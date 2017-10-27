@@ -1,4 +1,5 @@
 (newv radius real)
+(newc Pi real 3.14)
 (read radius)
-(write (* 3.14 radius radius))
-(write (* 2 3.14 radius))
+(write (* Pi radius radius))
+(write (* 2 Pi radius 2))
