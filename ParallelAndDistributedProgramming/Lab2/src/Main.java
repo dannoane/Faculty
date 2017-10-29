@@ -15,9 +15,9 @@ public class Main {
 
         Random random = new Random();
 
-        int n = random.nextInt(3) + 1;
-        int m = random.nextInt(3) + 1;
-        int p = random.nextInt(3) + 1;
+        int n = 100;//random.nextInt(99) + 1;
+        int m = 150;//random.nextInt(99) + 1;
+        int p = 200;//random.nextInt(99) + 1;
         Matrix a = new Matrix(n, m);
         Matrix b = new Matrix(m, p);
         Matrix c = new Matrix(n, p);
@@ -47,6 +47,8 @@ public class Main {
             }));
         }
 
+        long start = System.currentTimeMillis();
+
         //jobs.forEach(j -> executor.submit(j));
         jobs.forEach(j -> j.run());
         jobs.forEach(j -> {
@@ -57,11 +59,14 @@ public class Main {
             }
         });
 
+        long end = System.currentTimeMillis();
+        System.out.println("My task took " + (end - start) + " milliseconds to execute using " + threads + " threads.");
+
         //closeExecutor(executor);
 
-        System.out.println(a);
-        System.out.println(b);
-        System.out.println(c);
+        //System.out.println(a);
+        //System.out.println(b);
+        //System.out.println(c);
     }
 
     private static void randomInit(Matrix a) {
