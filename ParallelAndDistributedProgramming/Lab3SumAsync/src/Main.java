@@ -1,12 +1,10 @@
+import Model.ComputedValue;
 import Model.Matrix;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class Main {
@@ -26,30 +24,28 @@ public class Main {
         randomInit(a);
         randomInit(b);
 
-        List<Supplier<Long>> jobs = new ArrayList<>();
-        int tasks = random.nextInt(200) + 1;
+        List<Supplier<ComputedValue>> jobs = new ArrayList<>();
 
-        for (int counter = 0; counter < tasks; ++counter) {
-            int start = counter * (c.size() / tasks);
-            int end = (counter + 1) * (c.size() / tasks) + (counter + 1 == tasks ? c.size() % tasks : 0);
+        for (int row = 0; row < c.size(); ++row) {
+            for (int col = 0; col < c.size(); ++col) {
+                final int R = row;
+                final int C = col;
 
-            jobs.add(() -> {
-                for (int index = start; index < end; ++index) {
-                    int row = index / c.getCols();
-                    int col = index % c.getCols();
-
-                    c.set(row, col, a.get(row, col) + b.get(row, col));
-                }
-
-                return System.currentTimeMillis();
-            });
+                jobs.add(() -> {
+                    return new ComputedValue(R, C, a.get(R, C) + b.get(R, C));
+                });
+            }
         }
 
         start = System.currentTimeMillis();
         jobs.forEach(j -> {
             CompletableFuture.supplyAsync(j)
-                    .thenAccept((end) -> {
-                        System.out.println("My task took " + (end - start) + " milliseconds to execute using " + tasks + " threads.");
+                    .thenApply(computedValue -> {
+                        c.set(computedValue.getRow(), computedValue.getColumn(), computedValue.getValue());
+                        return System.currentTimeMillis();
+                    })
+                    .thenAccept(end -> {
+                        System.out.println("My task took " + (end - start) + " milliseconds to execute");
                     });
         });
     }

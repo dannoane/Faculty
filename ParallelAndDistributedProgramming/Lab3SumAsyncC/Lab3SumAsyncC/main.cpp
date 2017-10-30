@@ -70,16 +70,36 @@ public:
     }
 };
 
-long sum(Matrix *a, Matrix *b, Matrix *c, int start, int end) {
+class ComputedValue {
+  
+private:
+    int row;
+    int column;
+    int value;
     
-    for (int index = start; index < end; ++index) {
-        int row = index / c->getCols();
-        int col = index % c->getCols();
-        
-        c->set(row, col, a->get(row, col) + b->get(row, col));
+public:
+    ComputedValue(int row, int column, int value) {
+        this->row = row;
+        this->column = column;
+        this->value = value;
     }
     
-    return 1;
+    int getRow() {
+        return this->row;
+    }
+    
+    int getColumn() {
+        return this->column;
+    }
+    
+    int getValue() {
+        return this->value;
+    }
+};
+
+ComputedValue* sum(Matrix *a, Matrix *b, int row, int col) {
+        
+    return new ComputedValue(row, col, a->get(row, col) + b->get(row, col));
 }
 
 int main(int argc, const char * argv[]) {
@@ -97,22 +117,22 @@ int main(int argc, const char * argv[]) {
     a->randInit();
     b->randInit();
     
-    int num_jobs = 200;
-    std::vector<std::future<long>> jobs;
+    std::vector<std::future<ComputedValue*>> jobs;
     
     auto started = std::chrono::high_resolution_clock::now();
-    for (int counter = 0; counter < num_jobs; ++counter) {
-        int start = counter * (c->size() / num_jobs);
-        int end = (counter + 1) * (c->size() / num_jobs) + (counter + 1 == num_jobs ? c->size() % num_jobs : 0);
-       
-        jobs.push_back(std::async(sum, a, b, c, start, end));
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < cols; ++col) {
+            jobs.push_back(std::async(sum, a, b, row, col));
+        }
     }
     
+    ComputedValue* computedValue;
     for (int i = 0; i < jobs.size(); ++i) {
-        jobs[i].get();
+        computedValue = jobs[i].get();
+        c->set(computedValue->getRow(), computedValue->getColumn(), computedValue->getValue());
     }
     auto done = std::chrono::high_resolution_clock::now();
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << " ms to complete using " << num_jobs << " async jobs" << std::endl;
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << " ms to complete" << std::endl;
     
 //    a->print();
 //    b->print();

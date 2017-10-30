@@ -20,8 +20,8 @@ public class Main {
         Random random = new Random();
 
         int n = 100;//random.nextInt(99) + 1;
-        int m = 150;//random.nextInt(99) + 1;
-        int p = 200;//random.nextInt(99) + 1;
+        int m = 100;//random.nextInt(99) + 1;
+        int p = 100;//random.nextInt(99) + 1;
         Matrix a = new Matrix(n, m);
         Matrix b = new Matrix(m, p);
         Matrix c = new Matrix(n, p);
@@ -29,30 +29,33 @@ public class Main {
         randomInit(a);
         randomInit(b);
 
-        ExecutorService executor = Executors.newWorkStealingPool();
         List<Runnable> jobs = new ArrayList<>();
-        threads = random.nextInt(500) + 1;
 
-        for (int counter = 0; counter < threads; ++counter) {
-            int start = counter * (c.size() / threads);
-            int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
+        for (threads = 50; threads <= 400; threads += 50) {
+            ExecutorService executor = Executors.newWorkStealingPool();
 
-            jobs.add(() -> {
-                for (int index = start; index < end; ++index) {
-                    int row = index / c.getCols();
-                    int col = index % c.getCols();
+            for (int counter = 0; counter < threads; ++counter) {
+                int start = counter * (c.size() / threads);
+                int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
 
-                    c.set(row, col, 0);
-                    for (int x = 0; x < a.getCols(); ++x) {
-                        c.set(row, col, c.get(row, col) + (a.get(row, x) * b.get(x, col)));
+                jobs.add(() -> {
+                    for (int index = start; index < end; ++index) {
+                        int row = index / c.getCols();
+                        int col = index % c.getCols();
+
+                        c.set(row, col, 0);
+                        for (int x = 0; x < a.getCols(); ++x) {
+                            c.set(row, col, c.get(row, col) + (a.get(row, x) * b.get(x, col)));
+                        }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        start = System.currentTimeMillis();
-        jobs.forEach(executor::submit);
-        closeExecutor(executor);
+            start = System.currentTimeMillis();
+            jobs.forEach(executor::submit);
+            closeExecutor(executor);
+            jobs.clear();
+        }
     }
 
     private static void randomInit(Matrix a) {

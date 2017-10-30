@@ -26,27 +26,30 @@ public class Main {
         randomInit(a);
         randomInit(b);
 
-        ExecutorService executor = Executors.newWorkStealingPool();
         List<Runnable> jobs = new ArrayList<>();
-        threads = random.nextInt(c.size()) + 1;
 
-        for (int counter  = 0; counter  < threads; ++counter) {
-            int start = counter * (c.size() / threads);
-            int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
+        for (threads = 50; threads <= 400; threads += 50) {
+            ExecutorService executor = Executors.newWorkStealingPool();
 
-            jobs.add(() -> {
-                for (int index = start; index < end; ++index) {
-                    int row = index / c.getCols();
-                    int col = index % c.getCols();
+            for (int counter  = 0; counter  < threads; ++counter) {
+                int start = counter * (c.size() / threads);
+                int end = (counter + 1) * (c.size() / threads) + (counter + 1 == threads ? c.size() % threads : 0);
 
-                    c.set(row, col, a.get(row, col) + b.get(row, col));
-                }
-            });
+                jobs.add(() -> {
+                    for (int index = start; index < end; ++index) {
+                        int row = index / c.getCols();
+                        int col = index % c.getCols();
+
+                        c.set(row, col, a.get(row, col) + b.get(row, col));
+                    }
+                });
+            }
+
+            start = System.currentTimeMillis();
+            jobs.forEach(j -> executor.submit(j));
+            closeExecutor(executor);
+            jobs.clear();
         }
-
-        start = System.currentTimeMillis();
-        jobs.forEach(j -> executor.submit(j));
-        closeExecutor(executor);
     }
 
     private static void randomInit(Matrix a) {

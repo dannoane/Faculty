@@ -70,19 +70,41 @@ public:
     }
 };
 
-long sum(Matrix *a, Matrix *b, Matrix *c, int start, int end) {
+class ComputedValue {
     
-    for (int index = start; index < end; ++index) {
-        int row = index / c->getCols();
-        int col = index % c->getCols();
-        
-        c->set(row, col, 0);
-        for (int x = 0; x < a->getCols(); ++x) {
-            c->set(row, col, c->get(row, col) + (a->get(row, x) * b->get(x, col)));
-        }
+private:
+    int row;
+    int column;
+    int value;
+    
+public:
+    ComputedValue(int row, int column, int value) {
+        this->row = row;
+        this->column = column;
+        this->value = value;
     }
     
-    return 1;
+    int getRow() {
+        return this->row;
+    }
+    
+    int getColumn() {
+        return this->column;
+    }
+    
+    int getValue() {
+        return this->value;
+    }
+};
+
+ComputedValue* prod(Matrix *a, Matrix *b, int row, int col) {
+    
+    int value = 0;
+    for (int x = 0; x < a->getCols(); ++x) {
+        value += a->get(row, x) * b->get(x, col);
+    }
+    
+    return new ComputedValue(row, col, value);
 }
 
 int main(int argc, const char * argv[]) {
@@ -90,8 +112,8 @@ int main(int argc, const char * argv[]) {
     srand((unsigned int) time(0));
     
     int n = 100;
-    int m = 150;
-    int p = 200;
+    int m = 100;
+    int p = 100;
     
     Matrix *a, *b, *c;
     a = new Matrix(n, m);
@@ -100,23 +122,23 @@ int main(int argc, const char * argv[]) {
     
     a->randInit();
     b->randInit();
-    
-    int num_jobs = 300;
-    std::vector<std::future<long>> jobs;
+
+    std::vector<std::future<ComputedValue*>> jobs;
     
     auto started = std::chrono::high_resolution_clock::now();
-    for (int counter = 0; counter < num_jobs; ++counter) {
-        int start = counter * (c->size() / num_jobs);
-        int end = (counter + 1) * (c->size() / num_jobs) + (counter + 1 == num_jobs ? c->size() % num_jobs : 0);
-        
-        jobs.push_back(std::async(sum, a, b, c, start, end));
+    for (int row = 0; row < c->getRows(); ++row) {
+        for (int col = 0; col < c->getCols(); ++col) {
+            jobs.push_back(std::async(prod, a, b, row, col));
+        }
     }
     
+    ComputedValue* computedValue;
     for (int i = 0; i < jobs.size(); ++i) {
-        jobs[i].get();
+        computedValue = jobs[i].get();
+        c->set(computedValue->getRow(), computedValue->getColumn(), computedValue->getValue());
     }
     auto done = std::chrono::high_resolution_clock::now();
-    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << " ms to complete using " << num_jobs << " async jobs" << std::endl;
+    std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << " ms to complete" << std::endl;
     
     //    a->print();
     //    b->print();
