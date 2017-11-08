@@ -16,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
 
         int n, m, p, q;
-        n = 2; m = 2; p = 2; q = 2;
+        n = 100; m = 200; p = 150; q = 250;
 
         Matrix a, b, ab, c, abc;
         a = new Matrix(n, m);
@@ -35,9 +35,12 @@ public class Main {
             System.exit(-1);
         }
 
+        // use 2 executors, one for each multiplication
         ExecutorService firstExecutor = Executors.newWorkStealingPool();
         ExecutorService secondExecutor = Executors.newWorkStealingPool();
+
         int firstThreads = 100, secondThreads = 200;
+
         List<Runnable> firstProd = new ArrayList<>();
         List<Runnable> secondProd = new ArrayList<>();
 
@@ -51,10 +54,10 @@ public class Main {
         closeExecutor(firstExecutor);
         closeExecutor(secondExecutor);
 
-        System.out.println(a.toString());
-        System.out.println(b.toString());
-        System.out.println(c.toString());
-        System.out.println(abc.toString());
+//        System.out.println(a.toString());
+//        System.out.println(b.toString());
+//        System.out.println(c.toString());
+//        System.out.println(abc.toString());
     }
 
     private static void addJobs(int threads, List<Runnable> jobs, Matrix first, Matrix second, Matrix dest) {

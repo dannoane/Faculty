@@ -31,6 +31,8 @@ public class Cell {
 
         try {
             while (value == null) {
+                // releases the lock and suspends the execution of the thread
+                // until the condition is true
                 notComputed.await();
             }
 
