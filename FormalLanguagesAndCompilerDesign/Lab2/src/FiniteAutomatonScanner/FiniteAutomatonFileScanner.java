@@ -1,9 +1,9 @@
 package FiniteAutomatonScanner;
 
-import Interpreter.FiniteAutomaton.FiniteStateMachine;
-import Interpreter.FiniteAutomaton.IFiniteStateMachine;
-import Interpreter.FiniteAutomaton.State;
-import Interpreter.FiniteAutomaton.Transition;
+import Program.FiniteAutomaton.FiniteStateMachine;
+import Program.FiniteAutomaton.IFiniteStateMachine;
+import Program.FiniteAutomaton.State;
+import Program.FiniteAutomaton.Transition;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

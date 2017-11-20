@@ -21,16 +21,13 @@ public class SymbolTable {
             throw new ProgramException(id + " is already defined");
         }
 
-        if (!constant && id.matches("^([a-zA-Z_$]+[0-9]*)+$")) {
-            symbolTable.put(id, varCode);
-            return varCode++;
-        }
-        else if ((constant && id.matches("^([a-zA-Z_$]+[0-9]*)+$")) || id.matches("^[0-9]+(\\.[0-9]+)?")) {
+        if (constant) {
             symbolTable.put(id, constCode);
             return constCode--;
         }
         else {
-            throw new ProgramException(id + " is an invalid identifier");
+            symbolTable.put(id, varCode);
+            return varCode++;
         }
     }
 

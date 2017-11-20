@@ -1,4 +1,4 @@
-package Interpreter.FiniteAutomaton;
+package Program.FiniteAutomaton;
 
 public interface ITransition {
 

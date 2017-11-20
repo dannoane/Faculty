@@ -1,6 +1,6 @@
 package FiniteAutomatonScanner;
 
-import Interpreter.FiniteAutomaton.IFiniteStateMachine;
+import Program.FiniteAutomaton.IFiniteStateMachine;
 
 public interface IFiniteAutomatonScanner {
 

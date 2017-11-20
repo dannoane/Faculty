@@ -1,5 +1,9 @@
 package Program;
 
+import FiniteAutomatonScanner.FiniteAutomatonFileScanner;
+import FiniteAutomatonScanner.FiniteAutomatonScannerException;
+import Program.FiniteAutomaton.FAValidator;
+import Program.FiniteAutomaton.IFiniteStateMachine;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -11,12 +15,26 @@ public class InternalForm {
     private List<Pair<Integer, Integer>> internalForm;
     private HashMap<String, Integer> symbols;
 
+    private IFiniteStateMachine numberFA;
+    private IFiniteStateMachine idFA;
+
     public InternalForm() {
 
-        internalForm = new ArrayList<>();
-        symbols = new HashMap<>();
+        this.internalForm = new ArrayList<>();
+        this.symbols = new HashMap<>();
 
         initialize();
+    }
+
+    public void initializeFA() throws ProgramException {
+
+        try {
+            this.numberFA = new FiniteAutomatonFileScanner("numberAutomaton.json").read();
+            this.idFA = new FiniteAutomatonFileScanner("idAutomaton.json").read();
+        } catch (FiniteAutomatonScannerException e) {
+            throw new ProgramException(e.getMessage());
+        }
+
     }
 
     public void add(String symbol, SymbolTable symbolTable) throws ProgramException {
@@ -30,11 +48,17 @@ public class InternalForm {
                 internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.get(symbol)));
             }
             else {
-                boolean constant = false;
-                if (!internalForm.isEmpty()) {
-                    if (internalForm.get(internalForm.size() - 1).getKey() == 26) {
-                        constant = true;
-                    }
+                boolean constant;
+                StringBuffer acceptedSeq = new StringBuffer();
+
+                if (FAValidator.isAccepted(numberFA, symbol, acceptedSeq, 0)) {
+                    constant = true;
+                }
+                else if (FAValidator.isAccepted(idFA, symbol, acceptedSeq, 0)) {
+                    constant = false;
+                }
+                else {
+                    throw new ProgramException(symbol + " is not a valid identifier");
                 }
 
                 internalForm.add(new Pair<>(symbols.get("ID"), symbolTable.set(symbol, constant)));

@@ -1,4 +1,4 @@
-package Interpreter.FiniteAutomaton;
+package Program.FiniteAutomaton;
 
 import java.util.List;
 

@@ -1,6 +1,8 @@
 package Interpreter;
 
+import FiniteAutomatonScanner.FiniteAutomatonScannerException;
 import Program.InternalForm;
+import Program.ProgramException;
 import Program.SymbolTable;
 import Scanner.Scanner;
 import Scanner.ScannerException;
@@ -21,8 +23,10 @@ public class Interpreter {
         Scanner scanner = new Scanner(filename, internalForm, symbolTable);
 
         try {
+            scanner.init();
+            internalForm.initializeFA();
             scanner.parse();
-        } catch (ScannerException e) {
+        } catch (ScannerException | ProgramException | FiniteAutomatonScannerException e) {
             throw new InterpreterException(e.getMessage());
         }
 

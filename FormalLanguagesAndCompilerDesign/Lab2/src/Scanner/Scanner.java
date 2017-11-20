@@ -1,5 +1,9 @@
 package Scanner;
 
+import FiniteAutomatonScanner.FiniteAutomatonScannerException;
+import Program.FiniteAutomaton.FAValidator;
+import Program.FiniteAutomaton.IFiniteStateMachine;
+import FiniteAutomatonScanner.FiniteAutomatonFileScanner;
 import Program.InternalForm;
 import Program.ProgramException;
 import Program.SymbolTable;
@@ -15,12 +19,18 @@ public class Scanner {
     private InternalForm internalForm;
     private SymbolTable symbolTable;
     private String program;
+    private IFiniteStateMachine atomFA;
 
     public Scanner(String filename, InternalForm internalForm, SymbolTable symbolTable) {
 
         this.filename = filename;
         this.internalForm = internalForm;
         this.symbolTable = symbolTable;
+    }
+
+    public void init() throws FiniteAutomatonScannerException {
+
+        this.atomFA = new FiniteAutomatonFileScanner("atomAutomaton.json").read();
     }
 
     private void read() throws ScannerException {
@@ -48,17 +58,20 @@ public class Scanner {
 
     private void generateInternalForm() throws ScannerException {
 
-        String[] program = this.program
-                .replaceAll("\\(", " ( ")
-                .replaceAll("\\)", " ) ")
-                .trim()
-                .split("\\s+");
+        while (this.program.length() > 0) {
+            StringBuffer atom = new StringBuffer();
 
-        for (String symbol: program) {
-            try {
-                internalForm.add(symbol, symbolTable);
-            } catch (ProgramException e) {
-                throw new ScannerException(e.getMessage());
+            FAValidator.isAccepted(atomFA, this.program, atom, 0);
+            if (atom.length() == 0) {
+                this.program = this.program.substring(1);
+            }
+            else {
+                try {
+                    internalForm.add(atom.toString(), symbolTable);
+                } catch (ProgramException e) {
+                    throw new ScannerException(e.getMessage());
+                }
+                this.program = this.program.substring(atom.length());
             }
         }
     }
