@@ -29,13 +29,14 @@ namespace Lab5
             InitHost();
             //MethodOne();
             //MethodTwo();
-            allDone.Reset();
+            //allDone.WaitOne();
             MethodThree();
             allDone.WaitOne();
         }
 
         private async static void MethodThree()
         {
+            allDone.Reset();
             foreach (string path in paths)
             {
                 var connectResult = await Task.Factory.StartNew(() =>
@@ -91,8 +92,8 @@ namespace Lab5
                 });
 
                 processResponse(data);
-                allDone.Set();
             }
+            allDone.Set();
         }
 
         private static string ReceiveDataMethodThree(IAsyncResult receiveResult)
@@ -130,6 +131,7 @@ namespace Lab5
 
         private static void MethodTwo()
         {
+            allDone.Reset();
             foreach (string path in paths)
             {
                 var data = Task.Factory.StartNew(() =>
@@ -180,6 +182,7 @@ namespace Lab5
 
                 processResponse(data.Result);
             }
+            allDone.Set();
         }
 
         private static string ReceiveData(Task<IAsyncResult> obj)
@@ -324,8 +327,8 @@ namespace Lab5
         private static void InitPaths()
         {
             paths.Add("/~rlupsa/edu/pdp/lab-5-futures-continuations.html");
-            //paths.Add("/~rlupsa/edu/pdp/lab-4-complex-sync.html");
-            //paths.Add("/~rlupsa/edu/pdp/lab-3-async.html");
+            paths.Add("/~rlupsa/edu/pdp/lab-4-complex-sync.html");
+            paths.Add("/~rlupsa/edu/pdp/lab-3-async.html");
         }
     }
 }
