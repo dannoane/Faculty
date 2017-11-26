@@ -1,0 +1,4 @@
+.vagrant/
+*.c
+lexa
+flex-master/
