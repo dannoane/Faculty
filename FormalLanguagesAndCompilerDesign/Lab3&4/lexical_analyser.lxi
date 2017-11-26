@@ -1,0 +1,181 @@
+%option noyywrap
+%{
+    #include <stdio.h>
+    #include <string.h>
+    #include <stdlib.h>
+    #include "parser.tab.h"
+
+    #define LENGTH 100
+
+    enum Type {
+        CONSTANT,
+        VARIABLE
+    };
+
+    struct PIF {
+        int code;
+        int* st_code;
+    };
+
+    struct ST {
+        char id[8];
+        int code;
+    };
+
+    struct List {
+        void* list;
+        int length;
+    };
+
+    int const_code = 0;
+    int var_code = 0;
+    int line_number = 1;
+    
+    struct List pif;
+    struct List st;
+
+    void init() {
+
+        pif.list = malloc(sizeof(struct PIF) * LENGTH);
+        pif.length = 0;
+
+        st.list = malloc(sizeof(struct ST) * LENGTH);
+        st.length = 0;
+    }
+
+    int search(char *value) {
+
+        int position = -1, index;
+
+        for (index = 0; index < st.length; ++index) {
+            if (strcmp(((struct ST*) st.list)[index].id, value) == 0) {
+                position = index;
+                break;
+            }
+        }
+
+        return position;
+    }
+
+    int add_keyword(int code, int* st_code) {
+
+        struct PIF* keyword = malloc(sizeof(struct PIF));
+        keyword->code = code;
+        keyword->st_code = st_code;
+
+        ((struct PIF*) pif.list)[pif.length++] = *keyword;
+        
+        return code;
+    }
+
+    int* add_symbol(char* value, enum Type type) {
+
+        int* code;
+        int position;
+
+        position = search(value);
+        if (position == -1) {
+            struct ST* symbol = malloc(sizeof(struct ST));
+            strcpy(symbol->id, value);
+            if (type == CONSTANT) {
+                symbol->code = --const_code;    
+                *code = const_code;  
+            }
+            else {
+                symbol->code = ++var_code;
+                *code = var_code;
+            }
+    
+            ((struct ST*) st.list)[st.length++] = *symbol;
+        }
+        else {
+            *code = ((struct ST *) st.list)[position].code;
+        }
+
+        return code;
+    }
+
+    void print_PIF() {
+
+        printf("%s", ">>> Program Internal Form\n");
+
+        int index;
+        struct PIF keyword;
+
+        for (index = 0; index < pif.length; ++index) {
+            keyword = ((struct PIF *) pif.list)[index];
+            
+            if (keyword.st_code != NULL) {
+                printf("%d\t\t--\t\t%d\n", keyword.code, *(keyword.st_code));
+            }
+            else {
+                printf("%d\t\t--\t\tNULL\n", keyword.code);
+            }
+        }
+    }
+
+    void print_ST() {
+
+        printf("%s", ">>> Symbol Table\n");
+
+        int index;
+        struct ST symbol;
+
+        for (index = 0; index < st.length; ++index) {
+            symbol = ((struct ST *) st.list)[index];
+            printf("%s\t\t--\t\t%d\n", symbol.id, symbol.code);
+        }
+    }
+%}
+
+digit       [0-9]
+letter      [_$a-zA-Z]
+
+%%
+"("         { add_keyword(START, NULL);     return START;    }
+")"         { add_keyword(END, NULL);       return END;      }
+"newv"      { add_keyword(DECLVAR, NULL);   return DECLVAR;  }
+"newc"      { add_keyword(DECLCONST, NULL); return DECLCONST;}
+"struct"    { add_keyword(DECLTYPE, NULL);  return DECLTYPE; }
+"integer"   { add_keyword(INTEGER, NULL);   return INTEGER;  }
+"real"      { add_keyword(REAL, NULL);      return REAL;     }
+"="         { add_keyword(ASSIG, NULL);     return ASSIG;    }
+"+"         { add_keyword(PLUS, NULL);      return PLUS;     }
+"-"         { add_keyword(MINUS, NULL);     return MINUS;    }
+"*"         { add_keyword(TIMES, NULL);     return TIMES;    }
+"/"         { add_keyword(DIV, NULL);       return DIV;      }
+"%"         { add_keyword(MOD, NULL);       return MOD;      }
+"**"        { add_keyword(POW, NULL);       return POW;      }
+"=="        { add_keyword(EQ, NULL);        return EQ;       }
+"<>"        { add_keyword(NEQ, NULL);       return NEQ;      }
+">"         { add_keyword(GTR, NULL);       return GTR;      }
+"<"         { add_keyword(LSS, NULL);       return LSS;      }
+">="        { add_keyword(GEQ, NULL);       return GEQ;      }
+"<="        { add_keyword(LEQ, NULL);       return LEQ;      }
+"while"     { add_keyword(WHILESYM, NULL);  return WHILESYM; }
+"if"        { add_keyword(IFSYM, NULL);     return IFSYM;    }
+"do"        { add_keyword(DOSYM, NULL);     return DOSYM;    }
+"write"     { add_keyword(WRITEOP, NULL);   return WRITEOP;  }
+"read"      { add_keyword(READOP, NULL);    return READOP;   }
+{letter}({letter}|{digit})*     {
+                                    //yylval.id = strdup(yytext);
+                                    add_keyword(ID, add_symbol(yytext, VARIABLE));
+                                    return ID;
+                                }
+{digit}+                        {
+                                    //yylval.integer_val = atoi(yytext);
+                                    add_keyword(INTEGERVAL, add_symbol(yytext, CONSTANT));
+                                    return INTEGERVAL;
+                                }
+{digit}+\.{digit}+              {
+                                    //yylval.real_val = atof(yytext);
+                                    add_keyword(REALVAL, add_symbol(yytext, CONSTANT));
+                                    return REALVAL;
+                                }
+\n                              { ++line_number; }
+[ \t\r]+                        { /* skip whitespace */ }
+.                               { 
+                                    printf("Unknown character [%c]\n",yytext[0]);
+                                    return UNKNOWN;
+                                }
+%%
