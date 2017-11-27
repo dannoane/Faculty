@@ -46,6 +46,7 @@
 %%
 program:    stmt_body | decl_body | stmt_body program | decl_body program
 
+stmts:      stmt | stmt stmts
 stmt_body:  START stmt END
 stmt:       assig | if | while | read | write
 assig:      ASSIG ID expr | EQ ID const
@@ -60,6 +61,7 @@ while:      WHILESYM expr stmt | WHILESYM expr block
 read:       READOP ID | READOP
 write:      WRITEOP ID | WRITEOP const | WRITEOP expr
 
+decls:      decl | decl decls
 decl_body:  START decl END
 decl:       declv | declc | declt
 declv:      DECLVAR ID type param | DECLVAR ID type  

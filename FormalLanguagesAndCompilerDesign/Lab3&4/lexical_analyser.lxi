@@ -7,6 +7,38 @@
 
     #define LENGTH 100
 
+    enum Token {
+        T_START,
+        T_END,
+        T_DECLVAR,
+        T_DECLCONST,
+        T_DECLTYPE,
+        T_INTEGER,
+        T_REAL,
+        T_ASSIG,
+        T_PLUS,
+        T_MINUS,
+        T_TIMES,
+        T_DIV,
+        T_MOD,
+        T_POW,
+        T_EQ,
+        T_NEQ,
+        T_GTR,
+        T_LSS,
+        T_GEQ,
+        T_LEQ,
+        T_WHILESYM,
+        T_IFSYM,
+        T_DOSYM,
+        T_WRITEOP,
+        T_READOP,
+        T_ID,
+        T_INTEGERVAL,
+        T_REALVAL,
+        T_UNKNOWN
+    };
+
     enum Type {
         CONSTANT,
         VARIABLE
@@ -132,44 +164,44 @@ digit       [0-9]
 letter      [_$a-zA-Z]
 
 %%
-"("         { add_keyword(START, NULL);     return START;    }
-")"         { add_keyword(END, NULL);       return END;      }
-"newv"      { add_keyword(DECLVAR, NULL);   return DECLVAR;  }
-"newc"      { add_keyword(DECLCONST, NULL); return DECLCONST;}
-"struct"    { add_keyword(DECLTYPE, NULL);  return DECLTYPE; }
-"integer"   { add_keyword(INTEGER, NULL);   return INTEGER;  }
-"real"      { add_keyword(REAL, NULL);      return REAL;     }
-"="         { add_keyword(ASSIG, NULL);     return ASSIG;    }
-"+"         { add_keyword(PLUS, NULL);      return PLUS;     }
-"-"         { add_keyword(MINUS, NULL);     return MINUS;    }
-"*"         { add_keyword(TIMES, NULL);     return TIMES;    }
-"/"         { add_keyword(DIV, NULL);       return DIV;      }
-"%"         { add_keyword(MOD, NULL);       return MOD;      }
-"**"        { add_keyword(POW, NULL);       return POW;      }
-"=="        { add_keyword(EQ, NULL);        return EQ;       }
-"<>"        { add_keyword(NEQ, NULL);       return NEQ;      }
-">"         { add_keyword(GTR, NULL);       return GTR;      }
-"<"         { add_keyword(LSS, NULL);       return LSS;      }
-">="        { add_keyword(GEQ, NULL);       return GEQ;      }
-"<="        { add_keyword(LEQ, NULL);       return LEQ;      }
-"while"     { add_keyword(WHILESYM, NULL);  return WHILESYM; }
-"if"        { add_keyword(IFSYM, NULL);     return IFSYM;    }
-"do"        { add_keyword(DOSYM, NULL);     return DOSYM;    }
-"write"     { add_keyword(WRITEOP, NULL);   return WRITEOP;  }
-"read"      { add_keyword(READOP, NULL);    return READOP;   }
+"("         { add_keyword(T_START, NULL);     return START;    }
+")"         { add_keyword(T_END, NULL);       return END;      }
+"newv"      { add_keyword(T_DECLVAR, NULL);   return DECLVAR;  }
+"newc"      { add_keyword(T_DECLCONST, NULL); return DECLCONST;}
+"struct"    { add_keyword(T_DECLTYPE, NULL);  return DECLTYPE; }
+"integer"   { add_keyword(T_INTEGER, NULL);   return INTEGER;  }
+"real"      { add_keyword(T_REAL, NULL);      return REAL;     }
+"="         { add_keyword(T_ASSIG, NULL);     return ASSIG;    }
+"+"         { add_keyword(T_PLUS, NULL);      return PLUS;     }
+"-"         { add_keyword(T_MINUS, NULL);     return MINUS;    }
+"*"         { add_keyword(T_TIMES, NULL);     return TIMES;    }
+"/"         { add_keyword(T_DIV, NULL);       return DIV;      }
+"%"         { add_keyword(T_MOD, NULL);       return MOD;      }
+"**"        { add_keyword(T_POW, NULL);       return POW;      }
+"=="        { add_keyword(T_EQ, NULL);        return EQ;       }
+"<>"        { add_keyword(T_NEQ, NULL);       return NEQ;      }
+">"         { add_keyword(T_GTR, NULL);       return GTR;      }
+"<"         { add_keyword(T_LSS, NULL);       return LSS;      }
+">="        { add_keyword(T_GEQ, NULL);       return GEQ;      }
+"<="        { add_keyword(T_LEQ, NULL);       return LEQ;      }
+"while"     { add_keyword(T_WHILESYM, NULL);  return WHILESYM; }
+"if"        { add_keyword(T_IFSYM, NULL);     return IFSYM;    }
+"do"        { add_keyword(T_DOSYM, NULL);     return DOSYM;    }
+"write"     { add_keyword(T_WRITEOP, NULL);   return WRITEOP;  }
+"read"      { add_keyword(T_READOP, NULL);    return READOP;   }
 {letter}({letter}|{digit})*     {
                                     //yylval.id = strdup(yytext);
-                                    add_keyword(ID, add_symbol(yytext, VARIABLE));
+                                    add_keyword(T_ID, add_symbol(yytext, VARIABLE));
                                     return ID;
                                 }
 {digit}+                        {
                                     //yylval.integer_val = atoi(yytext);
-                                    add_keyword(INTEGERVAL, add_symbol(yytext, CONSTANT));
+                                    add_keyword(T_INTEGERVAL, add_symbol(yytext, CONSTANT));
                                     return INTEGERVAL;
                                 }
 {digit}+\.{digit}+              {
                                     //yylval.real_val = atof(yytext);
-                                    add_keyword(REALVAL, add_symbol(yytext, CONSTANT));
+                                    add_keyword(T_REALVAL, add_symbol(yytext, CONSTANT));
                                     return REALVAL;
                                 }
 \n                              { ++line_number; }

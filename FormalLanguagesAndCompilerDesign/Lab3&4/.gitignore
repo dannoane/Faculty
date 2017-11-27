@@ -1,6 +1,7 @@
 .vagrant/
 *.c
 *.h
+*.log
 lexa
 compiler
 flex-master/
