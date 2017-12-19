@@ -4,10 +4,8 @@
 #include <string.h>
 #include <stdatomic.h>
 
-#define SIZE 5
+#define SIZE 20
 #define THREADS 100
-
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 struct Graph {
     unsigned int **adj_mat;
@@ -93,9 +91,9 @@ void* hamiltonian_circuit_recursive(void *_data) {
 
     struct Data *data = (struct Data *) _data;
 
-    if (atomic_load(&data->shared_data->found) != 0) {
-        return NULL;
-    }
+    // if (atomic_load(&data->shared_data->found) != 0) {
+    //     return NULL;
+    // }
 
     if (data->private_data->length == SIZE) {
         atomic_store(&data->shared_data->found, 1);
