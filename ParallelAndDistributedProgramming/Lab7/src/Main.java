@@ -8,62 +8,101 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Main {
 
-    private static final int SIZE = 5;
-    private static final int BOUND = 10;
+    private static final int SIZE = 1000;
+    private static final int BOUND = 5;
 
     private static double start;
     private static double end;
 
     public static void main(String[] args) {
 
-        int[] src = new int[SIZE];
-        int[] dest;
+        Vector src = new Vector(SIZE);
+        Vector dest = new Vector(SIZE);
 
         randomInit(src);
-        dest = src.clone();
-
-        List<Runnable> jobs = new ArrayList<>();
-        ReentrantLock[] locks = new ReentrantLock[SIZE];
-        for (int i = 0; i < SIZE; ++i) {
-            locks[i] = new ReentrantLock();
-        }
-
-        for (int index = 1; index < src.length; ++index) {
-            final int i = index;
-            jobs.add(() -> {
-
-                for (int item = i; item < src.length; ++item) {
-                    //locks[item].lock();
-                    dest[item] += + src[item - i];
-                    //locks[item].unlock();
-                }
-            });
-        }
-
-        ExecutorService executor = Executors.newWorkStealingPool();
 
         start = System.currentTimeMillis();
-        jobs.forEach(executor::submit);
+        Thread thread = new Thread(() -> {
+            try {
+                partialSum(src, 0, src.length(), dest);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        closeExecutor(executor);
+        end = System.currentTimeMillis();
+        System.out.println("My task took " + (end - start) + " milliseconds to execute.");
+
         printArray(src);
         printArray(dest);
     }
 
-    private static void printArray(int[] src) {
+    private static void partialSum(Vector src, int left, int right, Vector dest) throws InterruptedException {
 
-        for (int i = 0; i < src.length; ++i) {
-            System.out.print(src[i] + " ");
+        if (right - left == 1) {
+
+            if (left == 0) {
+                dest.set(left, src.get(left));
+            }
+            else {
+                dest.set(left, dest.get(left - 1) + src.get(left));
+            }
+
+            return;
+        }
+
+        int half = (left + right) / 2;
+
+        Thread leftThread = new Thread(() -> {
+            try {
+                partialSum(src, left, half, dest);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        Thread rightThread = new Thread(() -> {
+            try {
+                partialSum(src, half, right, dest);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        leftThread.start();
+        rightThread.start();
+
+        leftThread.join();
+        rightThread.join();
+    }
+
+    private static void printArray(Vector src) {
+
+        for (int i = 0; i < src.length(); ++i) {
+            try {
+                System.out.print(src.get(i) + " ");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         System.out.println();
     }
 
-    private static void randomInit(int[] list) {
+    private static void randomInit(Vector vector) {
 
         Random random = new Random();
 
         for (int index = 0; index < SIZE; ++index) {
-            list[index] = random.nextInt(BOUND);
+            try {
+                vector.set(index, random.nextInt(BOUND));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -72,7 +111,7 @@ public class Main {
         try {
             System.out.println("attempt to shutdown executor");
             executor.shutdown();
-            executor.awaitTermination(5, TimeUnit.SECONDS);
+            executor.awaitTermination(10, TimeUnit.SECONDS);
         }
         catch (InterruptedException e) {
             System.err.println("tasks interrupted");
