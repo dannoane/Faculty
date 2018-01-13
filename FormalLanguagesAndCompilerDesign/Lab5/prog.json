@@ -1,0 +1,32 @@
+{
+    "grammar": {
+        "program": [["stmt_body", "program"], ["decl_body", "program"], ["stmt_body"], ["decl_body"]],
+
+        "stmts": [["stmt_body", "stmts"], ["stmt_body"]],
+        "stmt_body": [[0, "stmt", 1]],
+        "stmt": [["assig"], ["if"], ["while"], ["read"], ["write"]],
+        "assig": [[7, 25, "expr"], [7, 25, "const"]],
+        "expr": [[0, "op", "params", 1]],
+        "op": [[8], [9], [10], [11], [12], [13], [14], [16], [17], [18], [19], [15]],
+        "params": [["param", "params"], ["param"]],
+        "param": [[25], ["const"], ["expr"]],
+        "const": [[26], [27]],
+        "if": [[21, "expr", "if_body"]],
+        "if_body": [["stmt_type"], ["stmt", "stmt_type"], ["stmt_type", "stmt"]],
+        "stmt_type":  [["stmt"], ["block"]],
+        "block": [[22, "stmts"]],
+        "while": [[20, "expr", "stmt_type"]],
+        "read": [[24, 25], [24]],
+        "write": [[23, "param"]],
+
+        "decls": [["decl_body", "decls"], ["decl_body"]],
+        "decl_body": [[0, "decl", 1]],
+        "decl": [["declv"], ["declc"], ["declt"]],
+        "declv": [[2, 25, "type", "param"], [2, 25, "type"]],
+        "declc": [[3, 25, "type", "param"]],    
+        "declt": [[4, 25, "decls"]],
+        "type": [[5], [6]]
+    },
+    "rules": ["program", "stmts", "stmt_body", "stmt", "assig", "expr", "op", "params", "const", "if", "block", "while", "read", "write", "decls", "decl_body", "decl", "declv", "declc", "declt", "type"],
+    "input": [1, 2, 25, 6, 1, 0, 3, 25, 6, 27, 1, 0, 24, 25, 1, 0, 23, 0, 10, 25, 25, 25, 1, 1, 0, 23, 0, 10, 26, 25, 25, 26, 1, 1]			
+}
