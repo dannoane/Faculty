@@ -46,22 +46,24 @@
 %%
 program:    stmt_body | decl_body | stmt_body program | decl_body program
 
-stmts:      stmt | stmt stmts
+stmts:      stmt_body | stmt_body stmts
 stmt_body:  START stmt END
 stmt:       assig | if | while | read | write
-assig:      ASSIG ID expr | EQ ID const
+assig:      ASSIG ID expr | ASSIG ID const
 expr:       START op params END
 op:         PLUS | MINUS | TIMES | DIV | MOD | POW | EQ | GTR | LSS | GEQ | LEQ | NEQ
 params:     param | param params
 param:      ID | const | expr
 const:      INTEGERVAL | REALVAL
-if:         IFSYM expr stmt | IFSYM expr stmt stmt | IFSYM expr block | IFSYM expr block block | IFSYM expr block stmt | IFSYM expr stmt block
+if:         IFSYM expr if_body
+if_body:    stmt_type | stmt stmt_type | stmt_type stmt
+stmt_type:  stmt | block
 block:      DOSYM stmts
-while:      WHILESYM expr stmt | WHILESYM expr block
+while:      WHILESYM expr stmt_type
 read:       READOP ID | READOP
-write:      WRITEOP ID | WRITEOP const | WRITEOP expr
+write:      WRITEOP param
 
-decls:      decl | decl decls
+decls:      decl_body | decl_body decls
 decl_body:  START decl END
 decl:       declv | declc | declt
 declv:      DECLVAR ID type param | DECLVAR ID type  

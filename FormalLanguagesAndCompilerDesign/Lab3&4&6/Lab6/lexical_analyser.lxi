@@ -1,0 +1,49 @@
+%option noyywrap
+%{
+    #include "parser.tab.h"
+    #include <stdio.h>
+    #include <string.h>
+    #include <stdlib.h>
+    
+    int line_number = 1;
+%}
+
+digit       [0-9]
+letter      [_$a-zA-Z]
+
+%%
+"do"        { return START;    }
+"end"       { return END;      }
+"var"       { return DECLVAR;  }
+"as"        { return AS;       }
+"int"       { return INTEGER;  }
+"="         { return ASSIG;    }
+"+"         { return PLUS;     }
+"-"         { return MINUS;    }
+"*"         { return TIMES;    }
+"/"         { return DIV;      }
+"%"         { return MOD;      }
+"=="        { return EQ;       }
+"<>"        { return NEQ;      }
+">"         { return GTR;      }
+"<"         { return LSS;      }
+">="        { return GEQ;      }
+"<="        { return LEQ;      }
+"if"        { return IFSYM;    }
+"write"     { return WRITEOP;  }
+"read"      { return READOP;   }
+{letter}({letter}|{digit})*     {
+                                    yylval.id = strdup(yytext);
+                                    return ID;
+                                }
+{digit}+                        {
+                                    yylval.intval = atoi(yytext);
+                                    return INTEGERVAL;
+                                }
+\n                              { ++line_number; }
+[ \t\r]+                        { /* skip whitespace */ }
+.                               { 
+                                    printf("Unknown character [%c]\n",yytext[0]);
+                                    return UNKNOWN;
+                                }
+%%
