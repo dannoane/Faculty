@@ -9,7 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static final int gridSize = 100;
+    public static final int gridSize = 200;
+    private static double start;
+    private static double end;
 
     public static void main(String[] args) {
 
@@ -33,6 +35,7 @@ public class Main {
             }
         }
 
+        start = System.currentTimeMillis();
         jobs.forEach(executor::submit);
         closeExecutor(executor);
 
@@ -55,6 +58,9 @@ public class Main {
             }
             executor.shutdownNow();
             System.out.println("shutdown finished");
+
+            end = System.currentTimeMillis();
+            System.out.println((end - start) + " ms");
         }
     }
 }

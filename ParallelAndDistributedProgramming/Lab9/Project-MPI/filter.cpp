@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <chrono>
 #include <mpi.h>
 #include "lodepng.h"
 
@@ -41,7 +42,7 @@ public:
         this->width = width;
         this->height = height;
 
-        this->image.assign(data, data + this->width * this->height * 4);
+        this->image.assign(data, data + this->width * this->height);
     }
 
     void read() {
@@ -120,41 +121,35 @@ public:
 
     static void apply(Image *image, long start, long end) {
 
-        long startX, startY, endX, endY;
-
-        startX = start % image->getWidth();
-        startY = start / image->getWidth();
-
-        endX = end % image->getWidth();
-        endY = end / image->getWidth();
-
         float red, green, blue;
         long imageX, imageY;
         Color color, newColor;
-        std::cout << start << " " << end << " " << startX << " " << startY << " " << endX << " " << endY << "\n";
-        for (long x = startX; x <= endX; ++x) {
-            for (long y = startY; y <= endY; ++y) {
-                red = green = blue = 0.0f;
 
-                for (long filterY = 0; filterY < filterWidth; ++filterY) {
-                    for (long filterX = 0; filterX < filterHeight; ++filterX) {
-                        imageX = (x - filterWidth / 2 + filterX + image->getWidth()) % image->getWidth();
-                        imageY = (y - filterHeight / 2 + filterY + image->getHeight()) % image->getHeight();
+        long x, y;
+        for (long index = start; index < end; ++index) {
+            x = index % image->getWidth();
+            y = index / image->getWidth();
 
-                        color = image->getRGB(imageY * image->getWidth() + imageX);
-                        red += color.red * filter[filterY][filterX];
-                        green += color.green * filter[filterY][filterX];
-                        blue += color.blue * filter[filterY][filterX];
-                    }
+            red = green = blue = 0.0f;
+
+            for (long filterY = 0; filterY < filterHeight; ++filterY) {
+                for (long filterX = 0; filterX < filterWidth; ++filterX) {
+                    imageX = (x - filterWidth / 2 + filterX + image->getWidth()) % image->getWidth();
+                    imageY = (y - filterHeight / 2 + filterY + image->getHeight()) % image->getHeight();
+
+                    color = image->getRGB(imageY * image->getWidth() + imageX);
+                    red += color.red * filter[filterY][filterX];
+                    green += color.green * filter[filterY][filterX];
+                    blue += color.blue * filter[filterY][filterX];
                 }
-
-                newColor.red = std::min(std::max(int(factor * red + bias), 0), 255);
-                newColor.green = std::min(std::max(int(factor * green + bias), 0), 255);
-                newColor.blue = std::min(std::max(int(factor * blue + bias), 0), 255);
-                newColor.alpha = color.alpha;
-                
-                image->setColor(y * image->getWidth() + x, newColor);
             }
+
+            newColor.red = std::min(std::max(int(factor * red + bias), 0), 255);
+            newColor.green = std::min(std::max(int(factor * green + bias), 0), 255);
+            newColor.blue = std::min(std::max(int(factor * blue + bias), 0), 255);
+            newColor.alpha = color.alpha;
+            
+            image->setColor(y * image->getWidth() + x, newColor);
         }
     }
 };
@@ -179,16 +174,16 @@ const float MotionBlur::bias = 0.0f;
 
 void filterMaster(Image *image, int nrProcs) {
 
-    if (nrProcs > 1) {
+    if (nrProcs > 0) {
         unsigned int width, height;
         long start, end;
 
         width = image->getWidth();
         height = image->getHeight();
 
-        for (int i = 0; i < (nrProcs - 1); ++i) {
-            start = i * (image->size() / (nrProcs - 1));
-            end = (i + 1) * (image->size() / (nrProcs - 1)) + ((i + 1) == (nrProcs - 1) ? image->size() % (nrProcs - 1) : 0) - 1;
+        for (int i = 0; i < nrProcs; ++i) {
+            start = i * (int) (image->size() / nrProcs);
+            end = (i + 1) * (int) (image->size() / nrProcs) + ((i + 1) == nrProcs ? image->size() % nrProcs : 0);
 
             MPI_Send(&start, 1, MPI_LONG, i + 1, 1, MPI_COMM_WORLD);
             MPI_Send(&end, 1, MPI_LONG, i + 1, 2, MPI_COMM_WORLD);
@@ -199,14 +194,13 @@ void filterMaster(Image *image, int nrProcs) {
 
         MPI_Status status;
         Color *chunk;
-        std::cout << "SENT ALL\n";
-        for (int i = 0; i < (nrProcs - 1); ++i) {
-            start = i * (image->size() / (nrProcs - 1));
-            end = (i + 1) * (image->size() / (nrProcs - 1)) + (i + 1 == (nrProcs - 1) ? image->size() % (nrProcs - 1) : 0) - 1;
-            
+
+        for (int i = 0; i < nrProcs; ++i) {
+            start = i * (int) (image->size() / nrProcs);
+            end = (i + 1) * (int) (image->size() / nrProcs) + ((i + 1) == nrProcs ? image->size() % nrProcs : 0);
+
             chunk = new Color[end - start];
 
-            std::cout << "RECV " << start << " " << end << "\n";
             MPI_Recv(chunk, (end - start) * sizeof(Color), MPI_BYTE, i + 1, 6, MPI_COMM_WORLD, &status);
             for (long index = start; index < end; ++index) {
                 image->setColor(index, chunk[index - start]);
@@ -238,11 +232,9 @@ void filterWorker(int me) {
     MPI_Recv(data, (width * height) * sizeof(Color), MPI_BYTE, MPI_ANY_SOURCE, 5, MPI_COMM_WORLD, &status);
 
     image = new Image(width, height, data);    
-
     MotionBlur::apply(image, start, end);
-    std::cout << "APPLIED\n";
-    MPI_Ssend(image->getImage().data() + start, (end - start) * sizeof(Color), MPI_BYTE, status.MPI_SOURCE, 6, MPI_COMM_WORLD);
-    std::cout << "DONE\n";
+
+    MPI_Send(image->getImage().data() + start, (end - start) * sizeof(Color), MPI_BYTE, status.MPI_SOURCE, 6, MPI_COMM_WORLD);
 }
 
 
@@ -262,7 +254,10 @@ int main() {
         image = new Image("test.png");
         image->read();
 
-        filterMaster(image, nrProcs);
+        auto started = std::chrono::high_resolution_clock::now();
+        filterMaster(image, nrProcs - 1);
+        auto done = std::chrono::high_resolution_clock::now();
+        std::cout << "Took " << std::chrono::duration_cast<std::chrono::milliseconds>(done-started).count() << " ms to complete" << std::endl;
     }
     else {
         filterWorker(me);
